@@ -1,82 +1,62 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>ETHMumbai Maxi Checker</title>
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
-        /* --- CSS VARIABLES & RESET --- */
         :root {
-            --bg-dark: #0f0f13;
-            --neon-purple: #b942ff;
-            --neon-blue: #00f3ff;
-            --neon-green: #00ff9d;
-            --comic-yellow: #ffea00;
-            --text-white: #ffffff;
-            --border-width: 3px;
-            --card-radius: 20px;
+            /* Restoring the Original Dark UI Palette */
+            --c-white: #e0e0e0;
+            --c-black: #121212;
+            --c-green: #00e676; 
+            --c-pink: #ff4081;
+            --c-yellow: #ffea00;
+            --c-red: #d50000;
+            --c-bg: #212121;
+            --c-road: #2c2c2c;
         }
 
         * {
             box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
+            touch-action: none;
+            user-select: none;
         }
 
         body {
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(var(--neon-purple) 1px, transparent 1px),
-                radial-gradient(var(--neon-blue) 1px, transparent 1px);
-            background-size: 40px 40px;
-            background-position: 0 0, 20px 20px;
-            font-family: 'Space Grotesk', sans-serif;
-            color: var(--text-white);
-            height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-color: var(--c-black);
+            font-family: 'VT323', monospace;
             overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
+            height: 100vh;
+            color: var(--c-white);
+        }
+
+        #game-container {
             position: relative;
-        }
-
-        /* --- FLOATING COMIC ELEMENTS --- */
-        .decoration {
-            position: absolute;
-            opacity: 0.2;
-            pointer-events: none;
-            z-index: 0;
-            animation: float 6s ease-in-out infinite;
-        }
-        .dec-1 { top: 10%; left: 5%; font-size: 4rem; color: var(--neon-blue); }
-        .dec-2 { bottom: 15%; right: 10%; font-size: 6rem; color: var(--neon-purple); animation-delay: 1s; }
-        .dec-3 { top: 20%; right: 20%; font-size: 3rem; color: var(--comic-yellow); animation-delay: 2s; }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(10deg); }
-        }
-
-        /* --- MAIN CONTAINER --- */
-        .app-container {
             width: 100%;
             max-width: 480px;
-            min-height: 600px;
-            position: relative;
-            z-index: 10;
-            padding: 20px;
-            perspective: 1000px;
+            height: 100%;
+            background-color: #333;
+            overflow: hidden;
+            border: 2px solid #444;
+            box-shadow: 0 0 15px rgba(0,0,0,0.8);
         }
 
-        /* --- SCREENS TRANSITIONS --- */
-        .screen {
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a; /* Matte Night Sky */
+        }
+
+        /* UI Overlay Styles */
+        .ui-screen {
             position: absolute;
             top: 0;
             left: 0;
@@ -84,487 +64,732 @@
             height: 100%;
             display: flex;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-            opacity: 0;
-            pointer-events: none;
-            transform: scale(0.9) translateY(20px);
+            align-items: center;
+            background: rgba(18, 18, 18, 0.96);
+            z-index: 10;
+            text-align: center;
+            padding: 20px;
         }
 
-        .screen.active {
-            opacity: 1;
-            pointer-events: all;
-            transform: scale(1) translateY(0);
+        .hidden {
+            display: none !important;
         }
 
-        /* --- LANDING SCREEN --- */
         h1 {
-            font-family: 'Bangers', cursive;
             font-size: 3.5rem;
-            text-align: center;
-            line-height: 1;
-            text-shadow: 4px 4px 0px var(--neon-purple);
-            transform: rotate(-3deg);
-            margin-bottom: 10px;
+            color: var(--c-yellow);
+            text-shadow: 3px 3px #000;
+            margin-bottom: 5px;
+            line-height: 0.9;
         }
 
-        .subtext {
+        p {
+            font-size: 1.5rem;
             color: #aaa;
-            margin-bottom: 40px;
-            font-size: 1.1rem;
-            text-align: center;
-        }
-
-        .input-group {
-            position: relative;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        .at-symbol {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--neon-green);
-            font-weight: bold;
-            font-size: 1.2rem;
+            margin-bottom: 30px;
         }
 
         input {
-            width: 100%;
-            padding: 18px 20px 18px 45px;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid var(--neon-purple);
-            border-radius: 12px;
-            color: white;
-            font-family: 'Space Grotesk', sans-serif;
-            font-size: 1.2rem;
-            outline: none;
-            transition: 0.3s;
-            box-shadow: 0 0 10px rgba(185, 66, 255, 0.1);
-        }
-
-        input:focus {
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 20px rgba(0, 243, 255, 0.3);
-            transform: scale(1.02);
-        }
-
-        .btn-main {
-            width: 100%;
-            padding: 18px;
-            background: var(--comic-yellow);
-            color: black;
-            font-family: 'Bangers', cursive;
-            font-size: 1.8rem;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            position: relative;
-            box-shadow: 5px 5px 0px #000;
-            transition: 0.2s;
+            background: #000;
+            border: 2px solid var(--c-green);
+            color: var(--c-white);
+            padding: 10px;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 20px;
+            width: 80%;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            outline: none;
         }
 
-        .btn-main:active {
-            transform: translate(2px, 2px);
-            box-shadow: 3px 3px 0px #000;
+        .btn-primary {
+            background: var(--c-green);
+            color: #000;
+            border: 2px solid var(--c-white);
+            padding: 15px 30px;
+            font-family: 'VT323', monospace;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #000;
+            transition: transform 0.1s;
         }
 
-        .btn-main:hover {
-            background: white;
+        .btn-primary:active {
+            transform: translateY(4px);
+            box-shadow: 0 1px 0 #000;
         }
 
-        /* --- LOADING SCREEN --- */
-        .loading-loader {
-            width: 80px;
-            height: 80px;
-            border: 8px solid rgba(255,255,255,0.1);
-            border-top: 8px solid var(--neon-green);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 30px;
-        }
-
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .loading-text {
-            font-family: 'Space Grotesk', monospace;
-            color: var(--neon-blue);
-            font-size: 1.2rem;
-            text-align: center;
-        }
-
-        .console-log {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 10px;
-            font-family: monospace;
-            height: 20px;
-        }
-
-        /* --- RESULT SCREEN (THE CARD) --- */
-        .card-wrapper {
-            perspective: 1000px;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            margin-bottom: 30px;
-        }
-
-        .maxi-card {
-            width: 100%;
-            background: rgba(20, 20, 25, 0.9);
-            border: 2px solid var(--neon-purple);
-            border-radius: var(--card-radius);
-            padding: 25px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 
-                0 0 30px rgba(185, 66, 255, 0.2),
-                10px 10px 0px rgba(0,0,0,0.5);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            animation: revealCard 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        /* Holographic Overlay */
-        .maxi-card::before {
-            content: '';
+        /* Radio Toggle */
+        #radio-container {
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(
-                45deg,
-                transparent 45%,
-                rgba(255, 255, 255, 0.1) 50%,
-                transparent 55%
-            );
-            animation: shine 4s infinite linear;
+            top: 10px;
+            right: 10px;
+            z-index: 5;
+        }
+
+        .radio-btn {
+            background: rgba(0,0,0,0.5);
+            color: var(--c-white);
+            border: 1px solid var(--c-yellow);
+            padding: 5px 10px;
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.8;
+        }
+        
+        .radio-active {
+            background: var(--c-yellow);
+            color: var(--c-black);
+            opacity: 1;
+        }
+
+        /* Receipt Style */
+        #receipt-card {
+            background: #fff;
+            color: #000;
+            width: 90%;
+            padding: 20px;
+            border-top: 8px dashed #333;
+            border-bottom: 8px dashed #333;
+            font-family: 'VT323', monospace;
+            transform: rotate(-1deg);
+            box-shadow: 5px 5px 10px rgba(0,0,0,0.7);
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .receipt-header {
+            text-align: center;
+            border-bottom: 2px dashed #000;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.3rem;
+            margin: 5px 0;
+        }
+
+        .receipt-comment {
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f4f4f4;
+            border: 1px solid #ccc;
+            line-height: 1.2;
+        }
+
+        .stamp {
+            font-size: 2.2rem;
+            color: var(--c-red);
+            border: 4px solid var(--c-red);
+            padding: 5px;
+            text-align: center;
+            margin-top: 15px;
+            transform: rotate(-5deg);
+            font-weight: bold;
+            opacity: 0.8;
+        }
+
+        /* HUD */
+        .controls-hint {
+            position: absolute;
+            bottom: 20px;
+            width: 100%;
+            text-align: center;
+            color: rgba(255,255,255,0.3);
+            font-size: 1.2rem;
             pointer-events: none;
         }
 
-        @keyframes shine { 0% { transform: translateY(-50%) translateX(-50%); } 100% { transform: translateY(50%) translateX(50%); } }
-        @keyframes revealCard { 0% { opacity: 0; transform: rotateY(90deg); } 100% { opacity: 1; transform: rotateY(0deg); } }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 20px;
-            border-bottom: 1px dashed rgba(255,255,255,0.2);
-            padding-bottom: 10px;
-        }
-
-        .eth-logo {
-            font-weight: 700;
-            color: var(--neon-blue);
-            letter-spacing: 1px;
-        }
-
-        .card-badge {
-            background: var(--neon-green);
-            color: black;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            text-transform: uppercase;
-        }
-
-        .user-avatar {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            border: 4px solid var(--comic-yellow);
-            margin-bottom: 15px;
-            object-fit: cover;
-            background: #333;
-        }
-
-        .user-handle {
-            font-size: 1.2rem;
-            color: #aaa;
-            margin-bottom: 5px;
-        }
-
-        .persona-title {
-            font-family: 'Bangers', cursive;
-            font-size: 2.8rem;
-            color: white;
-            line-height: 1;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 0px var(--neon-purple);
-            transform: rotate(-2deg);
-        }
-
-        .persona-desc {
-            font-size: 0.95rem;
-            line-height: 1.4;
-            color: #ddd;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.05);
-            padding: 10px;
-            border-radius: 8px;
-        }
-
-        .stats-row {
-            display: flex;
-            justify-content: space-around;
-            width: 100%;
-            margin-top: auto;
-        }
-
-        .stat {
-            display: flex;
-            flex-direction: column;
-        }
-        .stat-label { font-size: 0.6rem; color: var(--neon-blue); text-transform: uppercase; }
-        .stat-val { font-weight: bold; font-size: 1.1rem; }
-
-        .btn-share {
-            background: white;
-            color: black;
-            font-family: 'Space Grotesk', bold;
-            font-weight: 700;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            transition: 0.2s;
-            box-shadow: 0 0 20px rgba(255,255,255,0.3);
-        }
-        
-        .btn-share:hover { transform: scale(1.05); box-shadow: 0 0 30px rgba(255,255,255,0.5); }
-        .btn-reset { margin-top: 15px; background: transparent; border: none; color: #666; cursor: pointer; text-decoration: underline; }
-
-        /* Mobile Adjustments */
-        @media (max-width: 400px) {
-            h1 { font-size: 2.8rem; }
-            .persona-title { font-size: 2.2rem; }
-        }
     </style>
 </head>
 <body>
 
-    <div class="decoration dec-1">⚡</div>
-    <div class="decoration dec-2">✦</div>
-    <div class="decoration dec-3">🚀</div>
-
-    <div class="app-container">
+    <div id="game-container">
+        <canvas id="gameCanvas"></canvas>
         
-        <section id="landing-screen" class="screen active">
-            <h1>ETHMumbai<br><span style="color:var(--neon-blue)">Vibe Check</span></h1>
-            <p class="subtext">Reveal your on-chain energy. <br>Are you a builder or a narrative spinner?</p>
-            
-            <div class="input-group">
-                <span class="at-symbol">@</span>
-                <input type="text" id="username-input" placeholder="Enter X handle" autocomplete="off">
-            </div>
+        <div id="radio-container">
+            <button id="music-btn" class="radio-btn" onclick="toggleRadio()">📻 FM: OFF</button>
+        </div>
 
-            <button class="btn-main" onclick="startScan()">Check My Vibe 🔥</button>
-        </section>
+        <div id="start-screen" class="ui-screen">
+            <h1>ETHMUMBAI<br>VIBE CHECK</h1>
+            <p>ETHMumbai Maxi Edition</p>
+            <input type="text" id="username" placeholder="ENTER YOUR X HANDLE" maxlength="12">
+            <button class="btn-primary" onclick="startGame()">START RIDE</button>
+            <div style="margin-top: 20px; font-size: 1rem; color: #777;">Swipe or Arrows to Switch Lanes</div>
+        </div>
 
-        <section id="loading-screen" class="screen">
-            <div class="loading-loader"></div>
-            <h2 class="loading-text" id="loading-msg">Connecting to Mainnet...</h2>
-            <div class="console-log" id="console-msg"></div>
-        </section>
-
-        <section id="result-screen" class="screen">
-            <div class="card-wrapper">
-                <div class="maxi-card">
-                    <div class="card-header">
-                        <span class="eth-logo">ETHMumbai</span>
-                        <span class="card-badge">Verified Vibe</span>
-                    </div>
-                    
-                    <img src="" alt="Avatar" class="user-avatar" id="result-avatar">
-                    
-                    <div class="user-handle" id="result-handle">@username</div>
-                    <div class="persona-title" id="result-title">INFRA BRAIN</div>
-                    
-                    <div class="persona-desc" id="result-desc">
-                        "You talk about rollups at parties. People are scared but impressed."
-                    </div>
-
-                    <div class="stats-row">
-                        <div class="stat">
-                            <span class="stat-label">WAGMI</span>
-                            <span class="stat-val" id="stat-wagmi">99%</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-label">Based</span>
-                            <span class="stat-val" id="stat-based">High</span>
-                        </div>
-                        <div class="stat">
-                            <span class="stat-label">Rarity</span>
-                            <span class="stat-val" id="stat-rarity">SSR</span>
-                        </div>
-                    </div>
+        <div id="end-screen" class="ui-screen hidden">
+            <div id="receipt-card">
+                <div class="receipt-header">
+                    <h2>VIBE CHALAN</h2>
+                    <span style="font-size: 0.9rem">MH-12-ETH-2026</span>
+                </div>
+                <div class="receipt-row">
+                    <span>DRIVER:</span>
+                    <span id="r-name">@USER</span>
+                </div>
+                <div class="receipt-row">
+                    <span>SCORE:</span>
+                    <span id="r-score">0 pts</span>
+                </div>
+                <div class="receipt-row">
+                    <span>VIBE TYPE:</span>
+                    <span id="r-type">...</span>
+                </div>
+                <hr style="border: 1px dashed black;">
+                <div class="receipt-comment" id="r-slang">
+                    "Calculating..."
+                </div>
+                <div class="stamp" id="r-persona">
+                    PENDING...
                 </div>
             </div>
+            <button class="btn-primary" onclick="resetGame()">RIDE AGAIN</button>
+            <button style="background: var(--c-black); color: var(--c-white); border: 2px solid white; margin-top: 10px; padding: 10px; font-family: 'VT323'; font-size: 1.5rem; cursor: pointer; width:100%;" onclick="shareResult()">SHARE FLEX ON X</button>
+        </div>
 
-            <button class="btn-share" onclick="shareOnX()">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="black"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                Flex on X
-            </button>
-            <button class="btn-reset" onclick="resetApp()">Check another handle</button>
-        </section>
-
+        <div class="controls-hint" id="hud-hint">Swipe Left / Right</div>
     </div>
 
     <script>
-        // --- DATA & LOGIC ---
-
-        const PERSONAS = [
-            {
-                title: "INFRA BRAIN",
-                desc: "You talk about modularity at parties. People are confused but deeply impressed.",
-                wagmi: "100%", based: "Max", rarity: "Legendary"
-            },
-            {
-                title: "BUILDER CORE",
-                desc: "Sleep is for the weak. You have 5 hackathon submissions pending. Git commit or die.",
-                wagmi: "95%", based: "High", rarity: "Epic"
-            },
-            {
-                title: "NARRATIVE SURFER",
-                desc: "You bought the coin before the whitepaper was written. Pure intuitive chaos.",
-                wagmi: "50%", based: "Volatile", rarity: "Rare"
-            },
-            {
-                title: "COMMUNITY PLUG",
-                desc: "You know everyone. Literally everyone. You are the glue of the ecosystem.",
-                wagmi: "110%", based: "Social", rarity: "Uncommon"
-            },
-            {
-                title: "ECOSYSTEM ENJOYER",
-                desc: "Just here for the vibes, the POAPs, and the free pizza. Vitalik follows you (in your dreams).",
-                wagmi: "80%", based: "Chill", rarity: "Common"
-            },
-            {
-                title: "LOCKED-IN LURKER",
-                desc: "0 Tweets. 5000 Bookmarks. You know more than the founders.",
-                wagmi: "Unknown", based: "Dark Mode", rarity: "Mystic"
-            }
-        ];
-
-        const LOADING_MSGS = [
-            "Reading tweet aura...",
-            "Analyzing meme compatibility...",
-            "Checking wallet history...",
-            "Syncing Mumbai node...",
-            "Calculating WAGMI score..."
-        ];
-
-        let currentHandle = "";
-        let currentPersona = {};
-
-        // --- DOM ELEMENTS ---
-        const landingScreen = document.getElementById('landing-screen');
-        const loadingScreen = document.getElementById('loading-screen');
-        const resultScreen = document.getElementById('result-screen');
-        const usernameInput = document.getElementById('username-input');
+        // --- GAME CONFIG ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const LANES = 3;
         
-        // --- FUNCTIONS ---
+        // Game State
+        let isPlaying = false;
+        let frameCount = 0;
+        let speed = 6;
+        let score = 0; 
+        
+        // Vibe Trackers
+        let ethScore = 0;    // Points for "Maxi/Builder" choices
+        let degenScore = 0;  // Points for "Degen/Risk" choices
+        let normieScore = 0; // Points for "Web2/Normie" choices
+        
+        let username = "GUEST";
+        let laneIndex = 1; 
 
-        function startScan() {
-            const handle = usernameInput.value.trim().replace('@', '');
+        // Colors
+        const COLORS = {
+            road: '#2c2c2c',
+            grass: '#1a1a1a',
+            lane: '#666',
+            taxiBody: '#111',   // Black
+            taxiTop: '#ffea00', // Yellow Roof
+            gateEth: '#00e676',   // Green
+            gateDegen: '#ff4081', // Pink
+            gateNormie: '#90a4ae',// Greyish Blue
             
-            if (!handle) {
-                usernameInput.style.borderColor = 'red';
-                setTimeout(() => usernameInput.style.borderColor = 'var(--neon-purple)', 500);
+            bugSpike: '#ff5252',
+            bugPothole: '#121212',
+            bugBarricade: '#ffeb3b',
+        };
+
+        let obstacles = [];
+        let playerY = 0;
+
+        // --- AUDIO ---
+        let audioCtx = null;
+        let musicInterval = null;
+        let isRadioOn = false;
+
+        function initAudio() {
+            if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        function playNote(freq, type, duration, vol=0.05) {
+            if(!audioCtx) return;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function toggleRadio() {
+            initAudio();
+            const btn = document.getElementById('music-btn');
+            isRadioOn = !isRadioOn;
+            if (isRadioOn) {
+                if(audioCtx.state === 'suspended') audioCtx.resume();
+                btn.innerText = "📻 FM: ON 🎵";
+                btn.classList.add('radio-active');
+                startLoFiLoop();
+            } else {
+                btn.innerText = "📻 FM: OFF";
+                btn.classList.remove('radio-active');
+                stopLoFiLoop();
+            }
+        }
+
+        function startLoFiLoop() {
+            if(musicInterval) clearInterval(musicInterval);
+            const notes = [146, 164, 174, 196, 174, 164]; 
+            let idx = 0;
+            musicInterval = setInterval(() => {
+                playNote(notes[idx], 'triangle', 0.5, 0.03);
+                if(idx % 2 === 0) playNote(80, 'square', 0.2, 0.04); 
+                idx = (idx + 1) % notes.length;
+            }, 300);
+        }
+
+        function stopLoFiLoop() {
+            if(musicInterval) clearInterval(musicInterval);
+        }
+
+        // --- RESIZE ---
+        function resize() {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            playerY = canvas.height - 160;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        // --- INPUT ---
+        let touchStartX = 0;
+        document.addEventListener('keydown', (e) => {
+            if (!isPlaying) return;
+            if (e.key === 'ArrowLeft') moveLeft();
+            if (e.key === 'ArrowRight') moveRight();
+        });
+        canvas.addEventListener('touchstart', (e) => touchStartX = e.changedTouches[0].screenX);
+        canvas.addEventListener('touchend', (e) => {
+            if (!isPlaying) return;
+            const touchEndX = e.changedTouches[0].screenX;
+            if (touchEndX < touchStartX - 30) moveLeft();
+            if (touchEndX > touchStartX + 30) moveRight();
+        });
+
+        function moveLeft() { if (laneIndex > 0) laneIndex--; }
+        function moveRight() { if (laneIndex < LANES - 1) laneIndex++; }
+
+        // --- DRAWING ---
+        function drawRoad() {
+            ctx.fillStyle = COLORS.grass;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            let margin = 10;
+            ctx.fillStyle = COLORS.road;
+            ctx.fillRect(margin, 0, canvas.width - (margin*2), canvas.height);
+            ctx.strokeStyle = COLORS.lane;
+            ctx.setLineDash([40, 40]);
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            let roadW = canvas.width - (margin*2);
+            let singleLane = roadW / 3;
+            let offset = (frameCount * speed) % 80;
+            for(let i=1; i<3; i++) {
+                ctx.moveTo(margin + singleLane * i, -80 + offset);
+                ctx.lineTo(margin + singleLane * i, canvas.height);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawPlayer() {
+            let roadW = canvas.width - 20;
+            let singleLane = roadW / 3;
+            let x = 10 + (laneIndex * singleLane) + (singleLane / 2) - 30;
+            
+            // --- DRAW REALISTIC TAXI (Kaali Peeli) ---
+            
+            // Tires (Black rectangles sticking out)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x - 4, playerY + 15, 8, 15); // FL
+            ctx.fillRect(x + 56, playerY + 15, 8, 15); // FR
+            ctx.fillRect(x - 4, playerY + 60, 8, 15); // RL
+            ctx.fillRect(x + 56, playerY + 60, 8, 15); // RR
+
+            // Main Chassis (Black Body)
+            ctx.fillStyle = COLORS.taxiBody;
+            ctx.beginPath();
+            ctx.roundRect(x, playerY, 60, 85, 8);
+            ctx.fill();
+
+            // Roof (Yellow)
+            ctx.fillStyle = COLORS.taxiTop;
+            ctx.beginPath();
+            ctx.roundRect(x + 5, playerY + 15, 50, 45, 5);
+            ctx.fill();
+
+            // Windshield (Blue-ish glass)
+            ctx.fillStyle = '#81d4fa';
+            ctx.fillRect(x + 8, playerY + 18, 44, 12);
+            
+            // Rear Window
+            ctx.fillStyle = '#444';
+            ctx.fillRect(x + 8, playerY + 45, 44, 10);
+
+            // Taxi Sign (On Roof)
+            ctx.fillStyle = '#000';
+            ctx.fillRect(x + 20, playerY + 30, 20, 8);
+            ctx.fillStyle = '#ff0';
+            ctx.font = '8px Arial';
+            ctx.fillText("TAXI", x + 22, playerY + 37);
+
+            // Headlights (Beams)
+            ctx.fillStyle = 'rgba(255, 255, 200, 0.6)';
+            ctx.beginPath();
+            ctx.moveTo(x + 5, playerY);
+            ctx.lineTo(x - 10, playerY - 40);
+            ctx.lineTo(x + 20, playerY - 40);
+            ctx.lineTo(x + 15, playerY);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(x + 45, playerY);
+            ctx.lineTo(x + 40, playerY - 40);
+            ctx.lineTo(x + 70, playerY - 40);
+            ctx.lineTo(x + 55, playerY);
+            ctx.fill();
+
+            // Headlights (Bulbs)
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(x + 10, playerY + 2, 4, 0, Math.PI*2);
+            ctx.arc(x + 50, playerY + 2, 4, 0, Math.PI*2);
+            ctx.fill();
+        }
+
+        function drawObstacles() {
+            let roadW = canvas.width - 20;
+            let singleLane = roadW / 3;
+
+            obstacles.forEach(obs => {
+                let x = 10 + (obs.lane * singleLane);
+                let w = singleLane;
+                let centerX = x + w/2;
+                
+                if (obs.category === 'bug') {
+                    // --- DRAW BUG (High Visibility) ---
+                    let label = "BUG";
+                    let color = '#fff';
+                    
+                    if(obs.type === 'spike') {
+                        ctx.fillStyle = COLORS.bugSpike;
+                        ctx.beginPath();
+                        ctx.moveTo(centerX - 20, obs.y + 40); 
+                        ctx.lineTo(centerX, obs.y); 
+                        ctx.lineTo(centerX + 20, obs.y + 40);
+                        ctx.fill();
+                        label = "GAS SPIKE";
+                    } else if (obs.type === 'pothole') {
+                        ctx.fillStyle = COLORS.bugPothole;
+                        ctx.beginPath(); ctx.ellipse(centerX, obs.y + 20, 30, 15, 0, 0, Math.PI * 2); ctx.fill();
+                        ctx.strokeStyle = '#555'; ctx.lineWidth = 2; ctx.stroke();
+                        label = "POTHOLE";
+                    }
+
+                    // Floating Label Box for Readability
+                    ctx.fillStyle = '#000';
+                    ctx.fillRect(centerX - 40, obs.y + 45, 80, 20);
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(centerX - 40, obs.y + 45, 80, 20);
+                    
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 16px VT323';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(label, centerX, obs.y + 60);
+
+                } else if (obs.category === 'gate') {
+                    // --- DRAW 3D GATE ---
+                    let color = COLORS.gateNormie;
+                    if(obs.subtype === 'eth') color = COLORS.gateEth;
+                    if(obs.subtype === 'degen') color = COLORS.gateDegen;
+
+                    // 1. Pillars (Side shading)
+                    ctx.fillStyle = '#222'; // Dark side
+                    ctx.fillRect(x + 2, obs.y, 8, 90); // Left Pillar
+                    ctx.fillRect(x + w - 10, obs.y, 8, 90); // Right Pillar
+                    
+                    ctx.fillStyle = '#555'; // Front face
+                    ctx.fillRect(x + 6, obs.y, 4, 90);
+                    ctx.fillRect(x + w - 6, obs.y, 4, 90);
+
+                    // 2. Top Banner (Background)
+                    ctx.fillStyle = '#111';
+                    ctx.fillRect(x + 2, obs.y, w - 4, 40);
+                    
+                    // 3. Neon Border
+                    ctx.strokeStyle = color;
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = color;
+                    ctx.shadowBlur = 10;
+                    ctx.strokeRect(x + 6, obs.y + 4, w - 12, 32);
+                    ctx.shadowBlur = 0; // Reset blur
+
+                    // 4. Text (High Contrast)
+                    ctx.fillStyle = color;
+                    ctx.font = 'bold 26px VT323';
+                    ctx.textAlign = 'center';
+                    
+                    // Text Outline for visibility
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = '#000';
+                    ctx.strokeText(obs.text, centerX, obs.y + 28);
+                    
+                    ctx.fillText(obs.text, centerX, obs.y + 28);
+                }
+            });
+        }
+
+        // --- GAME LOGIC ---
+
+        const vibeOptions = [
+            [{t:"VITALIK", s:"eth"}, {t:"ELON MUSK", s:"normie"}],
+            [{t:"ETHEREUM", s:"eth"}, {t:"SOLANA", s:"degen"}],
+            [{t:"DEFI", s:"eth"}, {t:"CEFI", s:"normie"}],
+            [{t:"VADA PAV", s:"eth"}, {t:"BURGER", s:"normie"}],
+            [{t:"HODL", s:"eth"}, {t:"PANIC SELL", s:"normie"}],
+            [{t:"ZK ROLLUP", s:"eth"}, {t:"MEMECOIN", s:"degen"}],
+            [{t:"BUILDER", s:"eth"}, {t:"INFLUENCER", s:"degen"}],
+            [{t:"CUTTING CHAI", s:"eth"}, {t:"STARBUCKS", s:"normie"}],
+            [{t:"SMART CONTRACT", s:"eth"}, {t:"PDF DOC", s:"normie"}],
+            [{t:"TESTNET", s:"eth"}, {t:"MAINNET APE", s:"degen"}],
+            [{t:"GRANT", s:"eth"}, {t:"VC MONEY", s:"normie"}],
+            [{t:"OPEN SOURCE", s:"eth"}, {t:"CLOSED BETA", s:"normie"}],
+            [{t:"WAGMI", s:"eth"}, {t:"NGMI", s:"normie"}],
+            [{t:"L2", s:"eth"}, {t:"L1 KILLER", s:"degen"}],
+            [{t:"ENS", s:"eth"}, {t:"GMAIL", s:"normie"}],
+            [{t:"THE LALIT", s:"eth"}, {t:"TAJ HOTEL", s:"normie"}],
+            [{t:"HACKATHON", s:"eth"}, {t:"CLUBBING", s:"degen"}],
+            [{t:"DAO", s:"eth"}, {t:"BOARD ROOM", s:"normie"}],
+            [{t:"AAVE", s:"eth"}, {t:"BANK LOAN", s:"normie"}],
+            [{t:"METAMASK", s:"eth"}, {t:"ROBINHOOD", s:"normie"}]
+        ];
+
+        function spawnObstacle() {
+            if (frameCount % 60 === 0) {
+                let lane = Math.floor(Math.random() * LANES);
+                let isGate = Math.random() > 0.5;
+
+                if (isGate && frameCount % 120 === 0) {
+                    spawnGateRow();
+                } else if (!isGate) {
+                    let bugType = Math.random() > 0.5 ? 'spike' : 'pothole';
+                    obstacles.push({
+                        lane: lane,
+                        y: -100,
+                        category: 'bug',
+                        type: bugType,
+                        active: true
+                    });
+                }
+            }
+        }
+
+        function spawnGateRow() {
+            let pair = vibeOptions[Math.floor(Math.random() * vibeOptions.length)];
+            let swap = Math.random() > 0.5;
+            let leftOpt = swap ? pair[1] : pair[0];
+            let rightOpt = swap ? pair[0] : pair[1];
+
+            obstacles.push({
+                lane: 0,
+                y: -100,
+                category: 'gate',
+                subtype: leftOpt.s,
+                text: leftOpt.t,
+                active: true
+            });
+
+            obstacles.push({
+                lane: 2,
+                y: -100,
+                category: 'gate',
+                subtype: rightOpt.s,
+                text: rightOpt.t,
+                active: true
+            });
+        }
+
+        function update() {
+            obstacles.forEach(obs => obs.y += speed);
+            obstacles = obstacles.filter(obs => obs.y < canvas.height + 50);
+
+            obstacles.forEach(obs => {
+                if (!obs.active) return;
+                
+                if (obs.y > playerY && obs.y < playerY + 80) { // Adjusted hitbox for new car
+                    if (laneIndex === obs.lane) {
+                        if (obs.category === 'bug') {
+                            gameOver();
+                        } else if (obs.category === 'gate') {
+                            if (obs.subtype === 'eth') ethScore++;
+                            if (obs.subtype === 'degen') degenScore++;
+                            if (obs.subtype === 'normie') normieScore++;
+                            score += 10;
+                            obs.active = false;
+                        }
+                    }
+                }
+            });
+
+            score++;
+            if (score % 600 === 0) speed += 0.5;
+        }
+
+        function loop() {
+            if (!isPlaying) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            frameCount++;
+            drawRoad();
+            spawnObstacle();
+            update();
+            drawObstacles();
+            drawPlayer();
+            
+            // HUD
+            ctx.fillStyle = '#fff';
+            ctx.font = '22px VT323';
+            ctx.textAlign = 'left';
+            ctx.fillText(`DIST: ${Math.floor(score/10)}m`, 20, 30);
+
+            requestAnimationFrame(loop);
+        }
+
+        // --- STATE MANAGEMENT ---
+
+        function startGame() {
+            const input = document.getElementById('username');
+            if (input.value.trim() === "") {
+                alert("ENTER YOUR WEB3 HANDLE!");
                 return;
             }
-
-            currentHandle = handle;
+            username = input.value;
+            initAudio();
             
-            // Switch to loading
-            switchScreen(landingScreen, loadingScreen);
+            score = 0; 
+            ethScore = 0; degenScore = 0; normieScore = 0;
+            speed = 6;
+            obstacles = [];
+            laneIndex = 1;
             
-            // Run fake loading sequence
-            let msgIndex = 0;
-            const msgElement = document.getElementById('loading-msg');
-            const consoleElement = document.getElementById('console-msg');
-
-            const interval = setInterval(() => {
-                msgElement.innerText = LOADING_MSGS[msgIndex];
-                consoleElement.innerText = `> accessing_block_${Math.floor(Math.random() * 9999)}`;
-                msgIndex++;
-                
-                if (msgIndex >= LOADING_MSGS.length) {
-                    clearInterval(interval);
-                    showResult(handle);
-                }
-            }, 800);
+            document.getElementById('start-screen').classList.add('hidden');
+            document.getElementById('end-screen').classList.add('hidden');
+            document.getElementById('hud-hint').style.display = 'block';
+            
+            if(isRadioOn) startLoFiLoop();
+            isPlaying = true;
+            loop();
         }
 
-        function showResult(handle) {
-            // 1. Deterministic Logic (Same handle = Same result)
-            // We sum the char codes of the handle to get a seed
-            let seed = 0;
-            for (let i = 0; i < handle.length; i++) {
-                seed += handle.charCodeAt(i);
-            }
+        function gameOver() {
+            isPlaying = false;
+            stopLoFiLoop();
+            playNote(100, 'sawtooth', 0.3);
+            generateReceipt();
+            document.getElementById('end-screen').classList.remove('hidden');
+            document.getElementById('hud-hint').style.display = 'none';
+        }
+
+        function resetGame() {
+            document.getElementById('end-screen').classList.add('hidden');
+            startGame();
+        }
+
+        function generateReceipt() {
+            document.getElementById('r-name').innerText = "@" + username;
+            document.getElementById('r-score').innerText = Math.floor(score) + " pts";
+
+            // --- MUMBAI SLANG + WEB3 COMMENTS ---
+            let persona = "PENDING";
+            let type = "UNKNOWN";
+            let slang = "";
+            let stampColor = COLORS.gateNormie;
+
+            // Arrays of random slang for variation
+            const paperHandsSlang = [
+                "Bhai, Saki Naka traffic se bhi slow nikle tum.",
+                "Meter down hote hi crash? Rickshaw hai ya Luna?",
+                "Beta, tumse na ho payega. Go back to Web2.",
+                "Portfolio rekt, mood upset. Kya gunda banega re tu?"
+            ];
             
-            // Select persona based on seed
-            const personaIndex = seed % PERSONAS.length;
-            currentPersona = PERSONAS[personaIndex];
+            const normieSlang = [
+                "Bhai, Starbucks chod, Cutting Chai peene aaja.",
+                "You are too simple for this crypto raada.",
+                "Normie vibes only. Lagta hai first time aaya hai Mumbai.",
+                "Dadar station ki bheed dekh ke darr gaya kya?"
+            ];
 
-            // 2. Hydrate the UI
-            document.getElementById('result-handle').innerText = '@' + handle;
-            document.getElementById('result-title').innerText = currentPersona.title;
-            document.getElementById('result-desc').innerText = currentPersona.desc;
-            
-            // Stats
-            document.getElementById('stat-wagmi').innerText = currentPersona.wagmi;
-            document.getElementById('stat-based').innerText = currentPersona.based;
-            document.getElementById('stat-rarity').innerText = currentPersona.rarity;
+            const degenSlang = [
+                "Visay hard hai bhai! Full leverage trading chalu hai?",
+                "Ekdum kadak! Risk hai toh ishq hai.",
+                "Full scene sort hai. Seedha moon pe jayega apun.",
+                "Bhai tu toh heavy driver nikla! No fear, only gear."
+            ];
 
-            // Generate Avatar (Using UI Avatars service as fallback for pure frontend)
-            // In a real app, you'd fetch the Twitter PFP via backend proxy
-            const avatarColor = seed % 2 === 0 ? '00ff9d' : 'b942ff'; // neon green or purple
-            document.getElementById('result-avatar').src = `https://ui-avatars.com/api/?name=${handle}&background=${avatarColor}&color=000&size=200&bold=true`;
+            const maxiSlang = [
+                "Ek Number! Tu asli builder hai boss.",
+                "Solid choices. Tu hi sambhalega ETHMumbai ka scene.",
+                "Load mat le, WAGMI confirm hai tera.",
+                "Vada Pav aur Whitepaper, deadly combination boss."
+            ];
 
-            // Color Coding based on Rarity
-            const cardElement = document.querySelector('.maxi-card');
-            if(currentPersona.rarity === 'Legendary') {
-                cardElement.style.borderColor = 'var(--comic-yellow)';
-                document.getElementById('result-title').style.color = 'var(--comic-yellow)';
+            // Determine Vibe
+            if (score < 300) {
+                persona = "PAPER HANDS";
+                type = "NOOB";
+                 slang = paperHandsSlang[Math.floor(Math.random() * paperHandsSlang.length)];
+                stampColor = COLORS.bugSpike;
+            } else if (normieScore > ethScore && normieScore > degenScore) {
+                 persona = "NORMIE";
+                 type = "WEB2 TOURIST";
+                 slang = normieSlang[Math.floor(Math.random() * normieSlang.length)];
+                 stampColor = COLORS.gateNormie;
+            } else if (degenScore > ethScore) {
+                 persona = "DEGEN APE";
+                 type = "RISK TAKER";
+                 slang = degenSlang[Math.floor(Math.random() * degenSlang.length)];
+                 stampColor = COLORS.gateDegen;
             } else {
-                cardElement.style.borderColor = 'var(--neon-purple)';
-                document.getElementById('result-title').style.color = 'white';
+                 persona = "ETH MAXI";
+                 type = "TRUE BUILDER";
+                 slang = maxiSlang[Math.floor(Math.random() * maxiSlang.length)];
+                 stampColor = COLORS.gateEth;
+            }
+            
+            if (score > 4000) {
+                persona = "LEGEND";
+                slang = "Bhai maan gaye. Bear Market aur Mumbai Potholes dono survive kar liya!";
+                stampColor = COLORS.taxiTop;
             }
 
-            switchScreen(loadingScreen, resultScreen);
+            document.getElementById('r-persona').innerText = persona;
+            document.getElementById('r-persona').style.color = stampColor;
+            document.getElementById('r-persona').style.borderColor = stampColor;
+            
+            document.getElementById('r-type').innerText = type;
+            document.getElementById('r-slang').innerText = `"${slang}"`;
         }
 
-        function shareOnX() {
-            const text = `Just checked my %23ETHMumbai vibe 🔥%0A%0ATurns out I’m a ${currentPersona.title}%0A%0A"${currentPersona.desc}"%0A%0ACheck your energy 👇`;
-            const url = "https://ethmumbai-checker.vercel.app"; // Replace with actual URL after deploy
-            const twitterUrl = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-            window.open(twitterUrl, '_blank');
+        function shareResult() {
+            let persona = document.getElementById('r-persona').innerText;
+            let slang = document.getElementById('r-slang').innerText;
+            let text = `My ETHMumbai Vibe Check: 🛺%0A%0ARole: ${persona}%0AVibe: ${slang}%0AScore: ${Math.floor(score)}%0A%0ACheck your vibe here:`;
+            window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
         }
 
-        function resetApp() {
-            usernameInput.value = '';
-            switchScreen(resultScreen, landingScreen);
-        }
-
-        function switchScreen(from, to) {
-            from.classList.remove('active');
-            setTimeout(() => {
-                to.classList.add('active');
-        
+    </script>
+</body>
+</html>
