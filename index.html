@@ -256,7 +256,7 @@
                 </div>
             </div>
             <button class="btn-primary" onclick="resetGame()">RIDE AGAIN</button>
-            <button style="background: var(--c-black); color: var(--c-white); border: 2px solid white; margin-top: 10px; padding: 10px; font-family: 'VT323'; font-size: 1.5rem; cursor: pointer; width:100%;" onclick="shareResult()">SHARE FLEX ON X</button>
+            <button style="background: var(--c-black); color: var(--c-white); border: 2px solid white; margin-top: 10px; padding: 10px; font-family: 'VT323'; font-size: 1.5rem; cursor: pointer; width:auto;" onclick="shareResult()">SHARE FLEX ON X</button>
         </div>
 
         <div class="controls-hint" id="hud-hint">Swipe Left / Right</div>
@@ -341,15 +341,29 @@
         }
 
         function startLoFiLoop() {
-            if(musicInterval) clearInterval(musicInterval);
-            const notes = [146, 164, 174, 196, 174, 164]; 
-            let idx = 0;
-            musicInterval = setInterval(() => {
-                playNote(notes[idx], 'triangle', 0.5, 0.03);
-                if(idx % 2 === 0) playNote(80, 'square', 0.2, 0.04); 
-                idx = (idx + 1) % notes.length;
-            }, 300);
-        }
+    if (musicInterval) clearInterval(musicInterval);
+
+    const bass = [82, 82, 98, 82]; // warm low notes
+    const melody = [196, 220, 246, 220]; // soft synth
+
+    let i = 0;
+
+    musicInterval = setInterval(() => {
+        // Tabla-style bass hit
+        playNote(bass[i % bass.length], 'sine', 0.4, 0.06);
+
+        // Soft lo-fi melody
+        setTimeout(() => {
+            playNote(melody[i % melody.length], 'triangle', 0.5, 0.025);
+        }, 120);
+
+        // Vinyl hiss (very subtle)
+        playNote(3000 + Math.random() * 2000, 'square', 0.02, 0.005);
+
+        i++;
+    }, 420); // relaxed tempo
+}
+
 
         function stopLoFiLoop() {
             if(musicInterval) clearInterval(musicInterval);
@@ -490,12 +504,12 @@
                         ctx.lineTo(centerX, obs.y); 
                         ctx.lineTo(centerX + 20, obs.y + 40);
                         ctx.fill();
-                        label = "GAS SPIKE";
+                        label = "RPC FAILURE";
                     } else if (obs.type === 'pothole') {
                         ctx.fillStyle = COLORS.bugPothole;
                         ctx.beginPath(); ctx.ellipse(centerX, obs.y + 20, 30, 15, 0, 0, Math.PI * 2); ctx.fill();
                         ctx.strokeStyle = '#555'; ctx.lineWidth = 2; ctx.stroke();
-                        label = "POTHOLE";
+                        label = "KYC WALL";
                     }
 
                     // Floating Label Box for Readability
@@ -707,14 +721,14 @@
             startGame();
         }
 
-        function generateReceipt() {
+function generateReceipt() {
             document.getElementById('r-name').innerText = "@" + username;
             document.getElementById('r-score').innerText = Math.floor(score) + " pts";
 
             // --- MUMBAI SLANG + WEB3 COMMENTS ---
-            let persona = "PENDING";
-            let type = "UNKNOWN";
-            let slang = "";
+            let persona = "ROOKIE DRIVER";
+            let type = "FIRST RIDE";
+            let slang = "Bas shuru kiya, abhi toh bohot kuch seekhna hai!";
             let stampColor = COLORS.gateNormie;
 
             // Arrays of random slang for variation
@@ -747,32 +761,68 @@
             ];
 
             // Determine Vibe
-            if (score < 300) {
+            // ---- NORMALIZED METRICS ----
+            const totalChoices = ethScore + degenScore + normieScore;
+            const ethRatio = totalChoices > 0 ? ethScore / totalChoices : 0;
+            const degenRatio = totalChoices > 0 ? degenScore / totalChoices : 0;
+            const normieRatio = totalChoices > 0 ? normieScore / totalChoices : 0;
+
+            // ---- PERSONA DECISION (Fixed logic to always assign a value) ----
+            if (score < 350 && totalChoices < 3) {
                 persona = "PAPER HANDS";
-                type = "NOOB";
-                 slang = paperHandsSlang[Math.floor(Math.random() * paperHandsSlang.length)];
+                type = "FIRST TIMER";
+                slang = paperHandsSlang[Math.floor(Math.random() * paperHandsSlang.length)];
                 stampColor = COLORS.bugSpike;
-            } else if (normieScore > ethScore && normieScore > degenScore) {
-                 persona = "NORMIE";
-                 type = "WEB2 TOURIST";
-                 slang = normieSlang[Math.floor(Math.random() * normieSlang.length)];
-                 stampColor = COLORS.gateNormie;
-            } else if (degenScore > ethScore) {
-                 persona = "DEGEN APE";
-                 type = "RISK TAKER";
-                 slang = degenSlang[Math.floor(Math.random() * degenSlang.length)];
-                 stampColor = COLORS.gateDegen;
-            } else {
-                 persona = "ETH MAXI";
-                 type = "TRUE BUILDER";
-                 slang = maxiSlang[Math.floor(Math.random() * maxiSlang.length)];
-                 stampColor = COLORS.gateEth;
             }
-            
-            if (score > 4000) {
+            else if (ethRatio > 0.7 && score > 4500) {
+                // LEGEND check moved earlier to prevent PENDING
                 persona = "LEGEND";
-                slang = "Bhai maan gaye. Bear Market aur Mumbai Potholes dono survive kar liya!";
+                type = "ETHMUMBAI OG";
+                slang = "Bear market, potholes aur gas wars — sab survive kiya boss.";
                 stampColor = COLORS.taxiTop;
+            }
+            else if (ethRatio > 0.65 && normieRatio < 0.15 && score > 2200) {
+                persona = "INFRA MAXI";
+                type = "PROTOCOL NERD";
+                slang = "Docs padhe, nodes chalaye, gas bachaya. ETHMumbai ka asli scene.";
+                stampColor = COLORS.gateEth;
+            }
+            else if (ethRatio > 0.5 && score > 1200) {
+                persona = "ETH MAXI";
+                type = "TRUE BUILDER";
+                slang = maxiSlang[Math.floor(Math.random() * maxiSlang.length)];
+                stampColor = COLORS.gateEth;
+            }
+            else if (degenRatio > 0.4 && score > 800) {
+                persona = "DEGEN APE";
+                type = "HIGH RISK DRIVER";
+                slang = degenSlang[Math.floor(Math.random() * degenSlang.length)];
+                stampColor = COLORS.gateDegen;
+            }
+            else if (normieRatio > 0.4) {
+                persona = "NORMIE";
+                type = "WEB2 TOURIST";
+                slang = normieSlang[Math.floor(Math.random() * normieSlang.length)];
+                stampColor = COLORS.gateNormie;
+            }
+            else if (totalChoices > 0) {
+                // Fallback for any other combination
+                if (ethScore >= degenScore && ethScore >= normieScore) {
+                    persona = "BUILDER";
+                    type = "RISING STAR";
+                    slang = "Sahi direction mein ja raha hai. Keep building!";
+                    stampColor = COLORS.gateEth;
+                } else if (degenScore > normieScore) {
+                    persona = "RISK TAKER";
+                    type = "BOLD DRIVER";
+                    slang = "Thoda risky, thoda fun. That's the spirit!";
+                    stampColor = COLORS.gateDegen;
+                } else {
+                    persona = "EXPLORER";
+                    type = "LEARNING MODE";
+                    slang = "Chal raha hai scene. Thoda aur gas de!";
+                    stampColor = COLORS.gateNormie;
+                }
             }
 
             document.getElementById('r-persona').innerText = persona;
@@ -786,7 +836,7 @@
         function shareResult() {
             let persona = document.getElementById('r-persona').innerText;
             let slang = document.getElementById('r-slang').innerText;
-            let text = `My ETHMumbai Vibe Check: 🛺%0A%0ARole: ${persona}%0AVibe: ${slang}%0AScore: ${Math.floor(score)}%0A%0ACheck your vibe here:`;
+            let text = `Just took the ETHMumbai Vibe Check: 🚕%0A%0ARole: ${persona}%0AVibe: ${slang}%0AScore: ${Math.floor(score)}%0A%0ACheck your vibe here:https://eth-mumbai-mix.netlify.app/`;
             window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
         }
 
